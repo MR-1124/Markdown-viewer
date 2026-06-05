@@ -8,6 +8,7 @@ import type { ToolbarButton, PreviewerStats } from './types';
 import {
   BoldIcon,
   ItalicIcon,
+  StrikethroughIcon,
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
@@ -18,8 +19,11 @@ import {
   ListBulletIcon,
   ListOrderedIcon,
   TaskListIcon,
+  TableIcon,
   QuoteIcon,
   DividerIcon,
+  UndoIcon,
+  RedoIcon,
 } from './components/Icons';
 import './App.css';
 
@@ -106,6 +110,7 @@ greet('World');
 const TOOLBAR_BUTTONS: ToolbarButton[] = [
   { label: 'B', prefix: '**', suffix: '**', shortcut: 'Ctrl+B', title: 'Bold', icon: <BoldIcon /> },
   { label: 'I', prefix: '_', suffix: '_', shortcut: 'Ctrl+I', title: 'Italic', icon: <ItalicIcon /> },
+  { label: 'S', prefix: '~~', suffix: '~~', shortcut: 'Ctrl+Shift+S', title: 'Strikethrough', icon: <StrikethroughIcon /> },
   { label: 'H1', prefix: '# ', suffix: '', shortcut: 'Ctrl+1', title: 'Heading 1', icon: <Heading1Icon /> },
   { label: 'H2', prefix: '## ', suffix: '', shortcut: 'Ctrl+2', title: 'Heading 2', icon: <Heading2Icon /> },
   { label: 'H3', prefix: '### ', suffix: '', shortcut: 'Ctrl+3', title: 'Heading 3', icon: <Heading3Icon /> },
@@ -116,8 +121,11 @@ const TOOLBAR_BUTTONS: ToolbarButton[] = [
   { label: '•', prefix: '- ', suffix: '', title: 'Bullet List', icon: <ListBulletIcon /> },
   { label: '1.', prefix: '1. ', suffix: '', title: 'Numbered List', icon: <ListOrderedIcon /> },
   { label: '☑', prefix: '- [ ] ', suffix: '', title: 'Task List', icon: <TaskListIcon /> },
+  { label: '⊞', prefix: '| Header 1 | Header 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |\n', suffix: '', title: 'Table', icon: <TableIcon /> },
   { label: '> ', prefix: '> ', suffix: '', title: 'Blockquote', icon: <QuoteIcon /> },
   { label: '—', prefix: '\n---\n', suffix: '', title: 'Horizontal Rule', icon: <DividerIcon /> },
+  { label: '↶', prefix: '', suffix: '', shortcut: 'Ctrl+Z', title: 'Undo', icon: <UndoIcon />, action: 'undo' },
+  { label: '↷', prefix: '', suffix: '', shortcut: 'Ctrl+Y', title: 'Redo', icon: <RedoIcon />, action: 'redo' },
 ];
 
 export default function App() {
@@ -167,6 +175,20 @@ export default function App() {
         if (confirm('Clear all content? This cannot be undone.')) {
           setMarkdown('');
         }
+        break;
+      }
+      case 'undo':
+      case 'redo': {
+        // These are handled by the Editor component via keyboard shortcuts
+        // The toolbar buttons just trigger the keyboard shortcuts
+        const event = new KeyboardEvent('keydown', {
+          key: action === 'undo' ? 'z' : 'y',
+          ctrlKey: true,
+          metaKey: true,
+          shiftKey: action === 'redo',
+          bubbles: true,
+        });
+        window.dispatchEvent(event);
         break;
       }
     }

@@ -7,6 +7,7 @@ export type ToolbarButton = {
   shortcut?: string;
   title: string;
   icon?: ReactNode;
+  action?: string; // For special actions like undo, redo
 };
 
 export type PreviewerStats = {

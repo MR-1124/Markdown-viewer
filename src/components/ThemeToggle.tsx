@@ -1,18 +1,23 @@
 import { useTheme } from '../theme/ThemeContext';
 import type { ThemeName } from '../theme/ThemeContext';
+import { SunIcon, MoonIcon, GitHubIcon, PaperIcon, DraculaIcon, HighContrastIcon } from './Icons';
 
 const themeLabels: Record<ThemeName, string> = {
   light: 'Light',
   dark: 'Dark',
   github: 'GitHub',
   sepura: 'Sepura',
+  dracula: 'Dracula',
+  'high-contrast': 'High Contrast',
 };
 
-const themeIcons: Record<ThemeName, string> = {
-  light: '☀️',
-  dark: '🌙',
-  github: '🐙',
-  sepura: '📄',
+const themeIcons: Record<ThemeName, React.ReactNode> = {
+  light: <SunIcon size={16} />,
+  dark: <MoonIcon size={16} />,
+  github: <GitHubIcon size={16} />,
+  sepura: <PaperIcon size={16} />,
+  dracula: <DraculaIcon size={16} />,
+  'high-contrast': <HighContrastIcon size={16} />,
 };
 
 export function ThemeToggle() {

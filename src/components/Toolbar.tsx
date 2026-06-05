@@ -15,7 +15,13 @@ export function Toolbar({ buttons, onInsert, onAction }: ToolbarProps) {
             key={btn.title}
             type="button"
             className="toolbar-btn"
-            onClick={() => onInsert(btn.prefix, btn.suffix)}
+            onClick={() => {
+              if (btn.action) {
+                onAction(btn.action);
+              } else {
+                onInsert(btn.prefix, btn.suffix);
+              }
+            }}
             title={`${btn.title}${btn.shortcut ? ` (${btn.shortcut})` : ''}`}
             aria-label={btn.title}
           >

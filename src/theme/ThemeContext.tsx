@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 
-export type ThemeName = 'light' | 'dark' | 'github' | 'sepura';
+export type ThemeName = 'light' | 'dark' | 'github' | 'sepura' | 'dracula' | 'high-contrast';
 
 interface ThemeContextType {
   theme: ThemeName;
@@ -13,7 +13,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = 'markdown-previewer-theme';
 
-const themeOrder: ThemeName[] = ['light', 'dark', 'github', 'sepura'];
+const themeOrder: ThemeName[] = ['light', 'dark', 'github', 'sepura', 'dracula', 'high-contrast'];
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeName>(() => {
