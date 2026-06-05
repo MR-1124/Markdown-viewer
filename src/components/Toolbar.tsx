@@ -1,4 +1,5 @@
 import type { ToolbarButton } from '../types';
+import { ClipboardIcon, DownloadIcon, ClearIcon } from './Icons';
 
 interface ToolbarProps {
   buttons: ToolbarButton[];
@@ -37,7 +38,8 @@ export function Toolbar({ buttons, onInsert, onAction }: ToolbarProps) {
           title="Copy HTML (Ctrl+Shift+C)"
           aria-label="Copy rendered HTML"
         >
-          📋 Copy HTML
+          <ClipboardIcon size={16} style={{marginRight: '6px'}} />
+          Copy HTML
         </button>
         <button
           type="button"
@@ -46,7 +48,8 @@ export function Toolbar({ buttons, onInsert, onAction }: ToolbarProps) {
           title="Download .md file (Ctrl+S)"
           aria-label="Download markdown file"
         >
-          💾 Download
+          <DownloadIcon size={16} style={{marginRight: '6px'}} />
+          Download
         </button>
         <button
           type="button"
@@ -55,7 +58,8 @@ export function Toolbar({ buttons, onInsert, onAction }: ToolbarProps) {
           title="Clear editor (Ctrl+Shift+X)"
           aria-label="Clear editor"
         >
-          🗑️ Clear
+          <ClearIcon size={16} style={{marginRight: '6px'}} />
+          Clear
         </button>
       </div>
     </div>

@@ -24,6 +24,7 @@ import {
   DividerIcon,
   UndoIcon,
   RedoIcon,
+  MarkdownIcon,
 } from './components/Icons';
 import './App.css';
 
@@ -233,7 +234,7 @@ export default function App() {
     <ThemeProvider>
       <div className="app">
         <header className="app-header">
-          <h1>📝 Markdown Previewer</h1>
+          <h1><MarkdownIcon size={24} style={{verticalAlign: 'middle', marginRight: '8px'}} /> Markdown Previewer</h1>
           <div className="header-actions">
             <ThemeToggle />
             <div className="header-hints">
