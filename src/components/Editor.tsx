@@ -1,12 +1,17 @@
-import { useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
+import { useRef, useCallback, useImperativeHandle, forwardRef, useState, useEffect } from 'react';
 import type { PreviewerStats } from '../types';
 import type { KeyboardEvent, ChangeEvent } from 'react';
+import { FindBar } from './FindBar';
 
 export interface EditorHandle {
   undo: () => void;
   redo: () => void;
   canUndo: () => boolean;
   canRedo: () => boolean;
+  insertAtCursor: (prefix: string, suffix: string) => void;
+  find: (query: string, direction: 'next' | 'prev') => void;
+  replace: (query: string, replacement: string, replaceAll: boolean) => void;
+  setFindVisible: (visible: boolean) => void;
 }
 
 interface EditorProps {
@@ -21,6 +26,11 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ value, onChange, stats, 
   const historyRef = useRef<string[]>([value]);
   const historyIndexRef = useRef(0);
   const isInternalChangeRef = useRef(false);
+
+  // Find/Replace state
+  const [findVisible, setFindVisible] = useState(false);
+  const [findMatches, setFindMatches] = useState<number[]>([]);
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
 
   // Initialize history with current value if it's different
   if (historyRef.current[historyIndexRef.current] !== value && !isInternalChangeRef.current) {
@@ -66,13 +76,90 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ value, onChange, stats, 
   const canUndo = useCallback(() => historyIndexRef.current > 0, []);
   const canRedo = useCallback(() => historyIndexRef.current < historyRef.current.length - 1, []);
 
-  // Expose methods to parent via ref
-  useImperativeHandle(ref, () => ({
-    undo: handleUndo,
-    redo: handleRedo,
-    canUndo,
-    canRedo,
-  }), [handleUndo, handleRedo, canUndo, canRedo]);
+  // Find/Replace functionality
+  const computeMatches = useCallback((text: string, query: string) => {
+    if (!query) return [];
+    const matches: number[] = [];
+    const flags = 'g';
+    const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      matches.push(match.index);
+      if (match.index === regex.lastIndex) regex.lastIndex++;
+    }
+    return matches;
+  }, []);
+
+  const updateMatches = useCallback((query: string) => {
+    const matches = computeMatches(value, query);
+    setFindMatches(matches);
+    setCurrentMatchIndex(matches.length > 0 ? 0 : -1);
+  }, [value, computeMatches]);
+
+  const find = useCallback((query: string, direction: 'next' | 'prev') => {
+    if (!query) return;
+    updateMatches(query);
+    if (findMatches.length === 0) return;
+
+    let newIndex = currentMatchIndex;
+    if (direction === 'next') {
+      newIndex = (currentMatchIndex + 1) % findMatches.length;
+    } else {
+      newIndex = (currentMatchIndex - 1 + findMatches.length) % findMatches.length;
+    }
+    setCurrentMatchIndex(newIndex);
+
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const pos = findMatches[newIndex];
+      textarea.focus();
+      textarea.setSelectionRange(pos, pos + query.length);
+    }
+  }, [findMatches, currentMatchIndex, updateMatches]);
+
+  const replace = useCallback((query: string, replacement: string, replaceAll: boolean) => {
+    if (!query) return;
+    updateMatches(query);
+
+    if (replaceAll) {
+      let newValue = value;
+      let offset = 0;
+      for (const matchIndex of findMatches) {
+        const adjustedIndex = matchIndex + offset;
+        newValue = newValue.slice(0, adjustedIndex) + replacement + newValue.slice(adjustedIndex + query.length);
+        offset += replacement.length - query.length;
+      }
+      onChange(newValue);
+      pushHistory(newValue);
+      updateMatches(query);
+    } else if (currentMatchIndex >= 0 && currentMatchIndex < findMatches.length) {
+      const matchIndex = findMatches[currentMatchIndex];
+      const newValue = value.slice(0, matchIndex) + replacement + value.slice(matchIndex + query.length);
+      onChange(newValue);
+      pushHistory(newValue);
+      updateMatches(query);
+    }
+  }, [value, findMatches, currentMatchIndex, onChange, pushHistory, updateMatches]);
+
+  // Handle find/replace keyboard shortcuts (Ctrl+F, Ctrl+H)
+  useEffect(() => {
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+        if (e.key.toLowerCase() === 'f') {
+          e.preventDefault();
+          setFindVisible(true);
+        } else if (e.key.toLowerCase() === 'h') {
+          e.preventDefault();
+          setFindVisible(true);
+        }
+      }
+      if (e.key === 'Escape' && findVisible) {
+        setFindVisible(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [findVisible]);
 
   // Insert text at cursor position
   const insertAtCursor = useCallback((prefix: string, suffix: string) => {
@@ -107,6 +194,18 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ value, onChange, stats, 
       }
     });
   }, [onChange, pushHistory]);
+
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => ({
+    undo: handleUndo,
+    redo: handleRedo,
+    canUndo,
+    canRedo,
+    insertAtCursor,
+    find,
+    replace,
+    setFindVisible,
+  }), [handleUndo, handleRedo, canUndo, canRedo, insertAtCursor, find, replace, setFindVisible]);
 
   // Handle tab key for indentation
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -197,6 +296,14 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ value, onChange, stats, 
           <span title="Lines">{stats.lines} lines</span>
         </div>
       </div>
+      <FindBar
+        isVisible={findVisible}
+        onClose={() => setFindVisible(false)}
+        onFind={find}
+        onReplace={replace}
+        matchCount={findMatches.length}
+        currentMatch={currentMatchIndex}
+      />
       <textarea
         ref={textareaRef}
         className="editor-textarea"

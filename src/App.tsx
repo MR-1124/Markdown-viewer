@@ -3,8 +3,12 @@ import { Toolbar } from './components/Toolbar';
 import Editor, { type EditorHandle } from './components/Editor';
 import { Preview } from './components/Preview';
 import { ThemeToggle } from './components/ThemeToggle';
+import { ShortcutsModal } from './components/ShortcutsModal';
 import { ThemeProvider } from './theme/ThemeContext';
 import type { ToolbarButton, PreviewerStats } from './types';
+
+// Storage key for auto-save
+const STORAGE_KEY = 'markdown-previewer-content';
 import {
   BoldIcon,
   ItalicIcon,
@@ -130,9 +134,25 @@ const TOOLBAR_BUTTONS: ToolbarButton[] = [
 ];
 
 export default function App() {
-  const [markdown, setMarkdown] = useState<string>(DEFAULT_MARKDOWN);
+  // Initialize from localStorage or default
+  const [markdown, setMarkdown] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) return stored;
+    }
+    return DEFAULT_MARKDOWN;
+  });
   const [isFullscreen, setIsFullscreen] = useState<'editor' | 'preview' | null>(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const editorRef = useRef<EditorHandle>(null);
+
+  // Auto-save to localStorage (debounced)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      localStorage.setItem(STORAGE_KEY, markdown);
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [markdown]);
 
   // Compute stats
   const stats = useMemo<PreviewerStats>(() => {
@@ -142,13 +162,9 @@ export default function App() {
     return { words, characters, lines };
   }, [markdown]);
 
-  // Handle toolbar insert
+  // Handle toolbar insert - delegates to Editor's insertAtCursor for cursor-position insertion
   const handleInsert = useCallback((prefix: string, suffix: string) => {
-    setMarkdown((prev) => {
-      // In a real app, you'd want to insert at cursor position
-      // For simplicity, we'll append at the end
-      return prev + prefix + suffix;
-    });
+    editorRef.current?.insertAtCursor(prefix, suffix);
   }, []);
 
   // Handle toolbar actions
@@ -216,19 +232,37 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey) {
         if (e.key === '1') {
           e.preventDefault();
-          handleInsert('# ', '');
+          editorRef.current?.insertAtCursor('# ', '');
         } else if (e.key === '2') {
           e.preventDefault();
-          handleInsert('## ', '');
+          editorRef.current?.insertAtCursor('## ', '');
         } else if (e.key === '3') {
           e.preventDefault();
-          handleInsert('### ', '');
+          editorRef.current?.insertAtCursor('### ', '');
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleInsert]);
+  }, []);
+
+  // Handle shortcuts modal toggle (? or Ctrl+/)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // ? key (Shift+/)
+      if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+        e.preventDefault();
+        setShowShortcuts(true);
+      }
+      // Ctrl+/
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        setShowShortcuts(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <ThemeProvider>
@@ -265,6 +299,8 @@ export default function App() {
         <footer className="app-footer">
           <p>Built with React + TypeScript + Vite | <a href="https://github.com/markedjs/marked" target="_blank" rel="noopener">marked</a> + <a href="https://github.com/cure53/DOMPurify" target="_blank" rel="noopener">DOMPurify</a></p>
         </footer>
+
+        <ShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
       </div>
     </ThemeProvider>
   );

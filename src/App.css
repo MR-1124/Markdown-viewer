@@ -573,3 +573,375 @@
     padding: 0;
   }
 }
+
+/* Shortcuts Modal */
+.shortcuts-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.shortcuts-modal {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow);
+  animation: slideUp 0.15s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.shortcuts-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.shortcuts-modal-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.shortcuts-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shortcuts-modal-close:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.shortcuts-modal-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.shortcuts-modal-content {
+  overflow-y: auto;
+  padding: 16px 20px;
+  max-height: 60vh;
+}
+
+.shortcuts-category {
+  margin-bottom: 20px;
+}
+
+.shortcuts-category:last-child {
+  margin-bottom: 0;
+}
+
+.shortcuts-category-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  opacity: 0.6;
+  margin: 0 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.shortcuts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background 0.1s ease;
+}
+
+.shortcut-item:hover {
+  background: var(--accent-bg);
+}
+
+.shortcut-keys {
+  display: inline-flex;
+  align-items: center;
+  min-width: 160px;
+  padding: 4px 10px;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-h);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.shortcut-description {
+  font-size: 0.85rem;
+  color: var(--text-h);
+  flex: 1;
+}
+
+.shortcuts-modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.shortcuts-modal-footer p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.shortcuts-modal-footer kbd {
+  padding: 2px 6px;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .shortcuts-modal {
+    max-height: 90vh;
+    border-radius: 0;
+    height: 100%;
+  }
+
+  .shortcuts-modal-content {
+    max-height: calc(100% - 120px);
+  }
+
+  .shortcut-keys {
+    min-width: 130px;
+    font-size: 0.7rem;
+  }
+}
+
+/* Find Bar */
+.find-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--code-bg);
+  border-bottom: 1px solid var(--border);
+  animation: slideDown 0.15s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.find-bar-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.find-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.find-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  opacity: 0.7;
+  min-width: 50px;
+}
+
+.find-input {
+  flex: 1;
+  padding: 6px 10px;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.find-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+.find-bar-options {
+  display: flex;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.find-option {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--text-h);
+  position: relative;
+}
+
+.find-option input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
+}
+
+.find-option-label {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.find-option-tooltip {
+  display: none;
+}
+
+.find-option:hover .find-option-tooltip {
+  display: inline;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 4px;
+  padding: 4px 8px;
+  font-size: 0.65rem;
+  font-family: var(--sans);
+  font-weight: 400;
+  color: var(--bg);
+  background: var(--text-h);
+  border-radius: 3px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.find-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.find-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 10px;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.find-btn:hover:not(:disabled) {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.find-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.find-btn-prev,
+.find-btn-next {
+  min-width: 32px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.find-btn-replace,
+.find-btn-replace-all {
+  font-size: 0.7rem;
+  padding: 0 8px;
+}
+
+.find-btn-toggle {
+  margin-left: 4px;
+  padding: 0 8px;
+  font-size: 0.9rem;
+}
+
+.find-btn-close {
+  margin-left: auto;
+  padding: 0;
+  width: 28px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.find-btn-close:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.find-match-info {
+  font-size: 0.7rem;
+  color: var(--text);
+  opacity: 0.7;
+  margin-right: 8px;
+  font-family: var(--mono);
+}
+
+/* Highlight current match in textarea */
+/* This is handled via selection in the textarea */
