@@ -1,50 +1,78 @@
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import type { PreviewerStats } from '../types';
 import type { KeyboardEvent, ChangeEvent } from 'react';
+
+export interface EditorHandle {
+  undo: () => void;
+  redo: () => void;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
+}
 
 interface EditorProps {
   value: string;
   onChange: (value: string) => void;
   stats: PreviewerStats;
   placeholder?: string;
-  onUndo?: () => void;
-  onRedo?: () => void;
 }
 
-export function Editor({ value, onChange, stats, placeholder = 'Start writing markdown...', onUndo, onRedo }: EditorProps) {
+const Editor = forwardRef<EditorHandle, EditorProps>(({ value, onChange, stats, placeholder = 'Start writing markdown...' }, ref) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [history, setHistory] = useState<string[]>([value]);
-  const [historyIndex, setHistoryIndex] = useState(0);
+  const historyRef = useRef<string[]>([value]);
+  const historyIndexRef = useRef(0);
+  const isInternalChangeRef = useRef(false);
+
+  // Initialize history with current value if it's different
+  if (historyRef.current[historyIndexRef.current] !== value && !isInternalChangeRef.current) {
+    // Value changed externally (e.g., clear), reset history
+    historyRef.current = [value];
+    historyIndexRef.current = 0;
+  }
 
   // Push new value to history (for undo/redo)
   const pushHistory = useCallback((newValue: string) => {
-    setHistory(prev => {
-      const newHistory = prev.slice(0, historyIndex + 1);
-      newHistory.push(newValue);
-      return newHistory.slice(-50); // Keep last 50 states
-    });
-    setHistoryIndex(prev => Math.min(prev + 1, 49));
-  }, [historyIndex]);
+    if (isInternalChangeRef.current) return;
+
+    const newHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
+    newHistory.push(newValue);
+    historyRef.current = newHistory.slice(-50); // Keep last 50 states
+    historyIndexRef.current = Math.min(historyIndexRef.current + 1, 49);
+  }, []);
 
   // Handle undo
   const handleUndo = useCallback(() => {
-    if (historyIndex > 0) {
-      const newIndex = historyIndex - 1;
-      setHistoryIndex(newIndex);
-      onChange(history[newIndex]);
-      onUndo?.();
+    if (historyIndexRef.current > 0) {
+      const newIndex = historyIndexRef.current - 1;
+      historyIndexRef.current = newIndex;
+      const previousValue = historyRef.current[newIndex];
+      isInternalChangeRef.current = true;
+      onChange(previousValue);
+      isInternalChangeRef.current = false;
     }
-  }, [history, historyIndex, onChange, onUndo]);
+  }, [onChange]);
 
   // Handle redo
   const handleRedo = useCallback(() => {
-    if (historyIndex < history.length - 1) {
-      const newIndex = historyIndex + 1;
-      setHistoryIndex(newIndex);
-      onChange(history[newIndex]);
-      onRedo?.();
+    if (historyIndexRef.current < historyRef.current.length - 1) {
+      const newIndex = historyIndexRef.current + 1;
+      historyIndexRef.current = newIndex;
+      const nextValue = historyRef.current[newIndex];
+      isInternalChangeRef.current = true;
+      onChange(nextValue);
+      isInternalChangeRef.current = false;
     }
-  }, [history, historyIndex, onChange, onRedo]);
+  }, [onChange]);
+
+  const canUndo = useCallback(() => historyIndexRef.current > 0, []);
+  const canRedo = useCallback(() => historyIndexRef.current < historyRef.current.length - 1, []);
+
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => ({
+    undo: handleUndo,
+    redo: handleRedo,
+    canUndo,
+    canRedo,
+  }), [handleUndo, handleRedo, canUndo, canRedo]);
 
   // Insert text at cursor position
   const insertAtCursor = useCallback((prefix: string, suffix: string) => {
@@ -188,4 +216,8 @@ export function Editor({ value, onChange, stats, placeholder = 'Start writing ma
       />
     </div>
   );
-}
+});
+
+Editor.displayName = 'Editor';
+
+export default Editor;

@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Toolbar } from './components/Toolbar';
-import { Editor } from './components/Editor';
+import Editor, { type EditorHandle } from './components/Editor';
 import { Preview } from './components/Preview';
 import { ThemeToggle } from './components/ThemeToggle';
 import { ThemeProvider } from './theme/ThemeContext';
@@ -131,6 +131,7 @@ const TOOLBAR_BUTTONS: ToolbarButton[] = [
 export default function App() {
   const [markdown, setMarkdown] = useState<string>(DEFAULT_MARKDOWN);
   const [isFullscreen, setIsFullscreen] = useState<'editor' | 'preview' | null>(null);
+  const editorRef = useRef<EditorHandle>(null);
 
   // Compute stats
   const stats = useMemo<PreviewerStats>(() => {
@@ -177,18 +178,12 @@ export default function App() {
         }
         break;
       }
-      case 'undo':
+      case 'undo': {
+        editorRef.current?.undo();
+        break;
+      }
       case 'redo': {
-        // These are handled by the Editor component via keyboard shortcuts
-        // The toolbar buttons just trigger the keyboard shortcuts
-        const event = new KeyboardEvent('keydown', {
-          key: action === 'undo' ? 'z' : 'y',
-          ctrlKey: true,
-          metaKey: true,
-          shiftKey: action === 'redo',
-          bubbles: true,
-        });
-        window.dispatchEvent(event);
+        editorRef.current?.redo();
         break;
       }
     }
@@ -254,6 +249,7 @@ export default function App() {
         <main className={`main-content ${isFullscreen ? `fullscreen-${isFullscreen}` : ''}`}>
           {!isFullscreen || isFullscreen === 'editor' ? (
             <Editor
+              ref={editorRef}
               value={markdown}
               onChange={setMarkdown}
               stats={stats}
